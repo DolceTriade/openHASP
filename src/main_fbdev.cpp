@@ -1,30 +1,18 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2022 OpenHASP Developers
    For full license information read the LICENSE file in the project folder */
 
-#if !defined(USE_FBDEV) && (defined(WINDOWS) || defined(POSIX))
+#if defined(USE_FBDEV) && defined(POSIX)
 
-#if defined(WINDOWS)
-
-#include <windows.h>
-#include <direct.h>
-// MSDN recommends against using getcwd & chdir names
-#define cwd _getcwd
-#define cd _chdir
-#endif
-
-#if defined(POSIX)
 #include <netdb.h>
 #include <unistd.h>
 #define cwd getcwd
 #define cd chdir
-#endif
 
 #include <cstdlib>
 #include <iostream>
 
 #include "hasplib.h"
 
-// #include "app_hal.h"
 #include "display/monitor.h"
 
 #include "hasp_debug.h"
@@ -45,68 +33,6 @@ uint16_t statLoopCounter = 0; // measures the average looptime
 extern uint16_t tft_width;
 extern uint16_t tft_height;
 
-#if defined(WINDOWS)
-// https://gist.github.com/kingseva/a918ec66079a9475f19642ec31276a21
-void BindStdHandlesToConsole()
-{
-    // TODO: Add Error checking.
-
-    // Redirect the CRT standard input, output, and error handles to the console
-    freopen("CONIN$", "r", stdin);
-    freopen("CONOUT$", "w", stderr);
-    freopen("CONOUT$", "w", stdout);
-
-    // Note that there is no CONERR$ file
-    HANDLE hStdout = CreateFile("CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
-                                OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    HANDLE hStdin  = CreateFile("CONIN$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
-                               OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-    SetStdHandle(STD_OUTPUT_HANDLE, hStdout);
-    SetStdHandle(STD_ERROR_HANDLE, hStdout);
-    SetStdHandle(STD_INPUT_HANDLE, hStdin);
-
-    // Clear the error state for each of the C++ standard stream objects.
-    std::wclog.clear();
-    std::clog.clear();
-    std::wcout.clear();
-    std::cout.clear();
-    std::wcerr.clear();
-    std::cerr.clear();
-    std::wcin.clear();
-    std::cin.clear();
-}
-
-void InitializeConsoleOutput()
-{
-    bool isConsoleApp;
-
-    // How to check if the program is run from a console?
-    // https://stackoverflow.com/questions/9009333/how-to-check-if-the-program-is-run-from-a-console
-    HWND consoleWnd = GetConsoleWindow();
-    DWORD dwProcessId;
-    GetWindowThreadProcessId(consoleWnd, &dwProcessId);
-
-    if(GetCurrentProcessId() == dwProcessId) {
-        isConsoleApp = true; // Opened in Console
-    } else {
-        isConsoleApp = false; // Opened in Windows
-    }
-
-    // Use normal console that launched the program
-    AttachConsole(ATTACH_PARENT_PROCESS);
-
-    // Test if the application was started from a Console Window
-    if(!isConsoleApp) {
-        // If started from Windows, use detached Log Console Window
-        AllocConsole();
-    }
-
-    // Redirect all standard output streams to the console
-    BindStdHandlesToConsole();
-}
-#endif
-
 void setup()
 {
     // Load Settings
@@ -120,7 +46,6 @@ void setup()
 
     haspDevice.init();      // hardware setup
     haspDevice.show_info(); // debug info
-    // hal_setup();
     guiSetup();
 
     printf("%s %d\n", __FILE__, __LINE__);
@@ -194,14 +119,9 @@ void loop()
         }
 
         /* Reset loop counter every 10 seconds */
-        if(mainLoopCounter >= 9) {
-            mainLoopCounter = 0;
-        } else {
-            mainLoopCounter++;
-        }
+        ++mainLoopCounter %= 10;
         mainLastLoopTime += 1000;
     }
-    // delay(6);
 }
 
 void usage(const char* progName)
@@ -223,11 +143,6 @@ void usage(const char* progName)
               //   << "    -v | --verbose     Verbosity level" << std::endl
               << std::endl;
     fflush(stdout);
-#if defined(WINDOWS)
-    static const char s[] = "\n";
-    DWORD slen            = lstrlen(s);
-    WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), s, slen, &slen, NULL);
-#endif
 }
 
 int main(int argc, char* argv[])
@@ -235,28 +150,9 @@ int main(int argc, char* argv[])
     bool showhelp = false;
     int count;
 
-#if defined(WINDOWS)
-    InitializeConsoleOutput();
-    SetConsoleCP(65001); // 65001 = UTF-8
-    static const char s[] = "tränenüberströmt™\n";
-    DWORD slen            = lstrlen(s);
-    WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), s, slen, &slen, NULL);
-
-    HANDLE std_out = GetStdHandle(STD_OUTPUT_HANDLE);
-    if(std_out == INVALID_HANDLE_VALUE) {
-        return 66;
-    }
-    if(!WriteConsole(std_out, "Hello World!\n", 13, NULL, NULL)) {
-        return 67;
-    }
-#endif
-
-    SDL_Init(0);    // Needs to be initialized for GetPerfPath
     char buf[4096]; // never know how much is needed
-    std::cout << "CWD: " << cwd(buf, sizeof buf) << std::endl;
-    cd(SDL_GetPrefPath("hasp", "hasp"));
-    std::cout << "CWD changed to: " << cwd(buf, sizeof buf) << std::endl;
-    SDL_Quit(); // We'll properly init later
+    std::cout << "CWD: " << cwd(buf, sizeof(buf)) << std::endl;
+    std::cout << "CWD changed to: " << cwd(buf, sizeof(buf)) << std::endl;
 
     // Change to preferences dir
     std::cout << "\nCommand-line arguments:\n";
@@ -294,19 +190,8 @@ int main(int argc, char* argv[])
 
     if(showhelp) {
         usage("openHASP");
-
-#if defined(WINDOWS)
-        WriteConsole(std_out, "bye\n", 3, NULL, NULL);
-        std::cout << std::endl << std::flush;
-        fflush(stdout);
-        FreeConsole();
-        exit(0);
-#endif
         return 0;
     }
-
-    // printf("%s %d\n", __FILE__, __LINE__);
-    // fflush(stdout);
 
     debugPrintHaspHeader(stdout);
     LOG_INFO(TAG_MAIN, "resolution %d x %d", tft_width, tft_height);
@@ -315,7 +200,7 @@ int main(int argc, char* argv[])
     setup();
 
     LOG_TRACE(TAG_MAIN, "loop started");
-    while(isRunning) {
+    while(1) {
         loop();
     }
     LOG_TRACE(TAG_MAIN, "main loop completed");

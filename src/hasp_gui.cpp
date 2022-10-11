@@ -344,7 +344,7 @@ void guiSetup()
     static lv_indev_drv_t indev_drv;
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_POINTER;
-#if defined(WINDOWS) || defined(POSIX)
+#if (defined(WINDOWS) || defined(POSIX)) && !defined(USE_FBDEV)
     indev_drv.read_cb = mouse_read;
 #else
     indev_drv.read_cb = gui_touch_read;
@@ -370,8 +370,9 @@ void guiSetup()
     gui_hide_pointer(false);
     lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
 
-#if !(defined(WINDOWS) || defined(POSIX))
+#if 1
     // drv_touch_init(gui_settings.rotation); // Touch driver
+    LOG_TRACE(TAG_GUI, F("haspTouch.init"));
     haspTouch.init(tft_width, tft_height);
     haspTouch.set_rotation(gui_settings.rotation);
 #endif

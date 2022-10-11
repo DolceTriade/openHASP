@@ -73,6 +73,9 @@ class BaseTouch {
 #elif defined(LGFX_USE_V1)
 #warning Building for LovyanGfx Touch
 #include "touch_driver_lovyangfx.h"
+#elif defined(USE_EVDEV)
+#warning Building for evdev Touch
+#include "touch_driver_evdev.h"
 #else
 #warning Building for Generic Touch
 using dev::BaseTouch;

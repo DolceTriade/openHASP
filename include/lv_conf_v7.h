@@ -37,7 +37,7 @@
  * - 16: RGB565
  * - 32: ARGB8888
  */
-#define LV_COLOR_DEPTH     16
+#define LV_COLOR_DEPTH     32
 
  /* Swap the 2 bytes of RGB565 color.
   * Useful if the display has a 8 bit interface (e.g. SPI)*/
@@ -46,7 +46,7 @@
   /* 1: Enable screen transparency.
    * Useful for OSD or other overlapping GUIs.
    * Requires `LV_COLOR_DEPTH = 32` colors and the screen's style should be modified: `style.body.opa = ...`*/
-#define LV_COLOR_SCREEN_TRANSP    0
+#define LV_COLOR_SCREEN_TRANSP    1
 
    /*Images pixels with this color will not be drawn (with chroma keying)*/
 #define LV_COLOR_TRANSP    LV_COLOR_LIME         /*LV_COLOR_LIME: pure green*/
@@ -64,7 +64,7 @@
  /* Dot Per Inch: used to initialize default sizes.
   * E.g. a button with width = LV_DPI / 2 -> half inch wide
   * (Not so important, you can adjust it to modify default sizes and spaces)*/
-#define LV_DPI              100     /*[px]*/
+#define LV_DPI              130     /*[px]*/
 
   /* Type of coordinates. Should be `int16_t` (or `int32_t` for extreme cases) */
 typedef int16_t lv_coord_t;
@@ -536,7 +536,7 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 #define LV_USE_FONT_COMPRESSED 1
 
 /* Enable subpixel rendering */
-#define LV_USE_FONT_SUBPX 0
+#define LV_USE_FONT_SUBPX 1
 #if LV_USE_FONT_SUBPX
 /* Set the pixel order of the display.
  * Important only if "subpx fonts" are used.
@@ -674,7 +674,7 @@ typedef void* lv_font_user_data_t;
 
   /*Change the built in (v)snprintf functions*/
 #define LV_SPRINTF_CUSTOM   1   // saves 1.4 KiB
-#if LV_SPRINTF_CUSTOM 
+#if LV_SPRINTF_CUSTOM
 #  define LV_SPRINTF_INCLUDE <stdio.h>
 #  define lv_snprintf     snprintf
 #  define lv_vsnprintf    vsnprintf

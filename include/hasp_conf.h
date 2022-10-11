@@ -357,14 +357,19 @@ static WiFiSpiClass WiFi;
 #define delay Sleep
 #endif
 #if defined(POSIX)
+#ifdef USE_FBDEV
+#define delay(x) printf("DELAY %g\n", x)
+#else
 #define delay SDL_Delay
-#endif
+#endif  /*USE_FBDEV*/
+#endif  /*POSIX*/
 #if defined(WINDOWS) || defined(POSIX)
 #include <string.h>
 #include <strings.h>
 #include <stdio.h>
+#ifndef USE_FBDEV
 #include <SDL2/SDL.h>
-
+#endif  /*USE_FBDEV*/
 #define snprintf_P snprintf
 #define memcpy_P memcpy
 #define strcasecmp_P strcasecmp
@@ -372,8 +377,11 @@ static WiFiSpiClass WiFi;
 #define strcpy_P strcpy
 #define strstr_P strstr
 #define halRestartMcu()
+#ifdef USE_FBDEV
+#define millis haspDevice.get_uptime
+#else
 #define millis SDL_GetTicks
-
+#endif
 #define DEC 10
 #define HEX 16
 #define BIN 2

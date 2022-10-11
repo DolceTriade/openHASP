@@ -18,8 +18,9 @@
 
 #include "hasp_conf.h"
 #include "hasp_debug.h"
-
+#ifdef USE_MONITOR
 #include "display/monitor.h"
+#endif  /*USE_MONITOR*/
 
 // extern monitor_t monitor;
 
@@ -81,7 +82,9 @@ const char* PosixDevice::get_hostname()
 void PosixDevice::set_hostname(const char* hostname)
 {
     _hostname = hostname;
+#ifdef USE_MONITOR
     monitor_title(hostname);
+#endif  /*USE_MONITOR*/
     // SDL_SetWindowTitle(monitor.window, hostname);
 }
 
@@ -146,7 +149,9 @@ void PosixDevice::update_backlight()
 {
     uint8_t level = _backlight_power ? _backlight_level : 0;
     if(_backlight_invert) level = 255 - level;
+#ifdef USE_MONITOR
     monitor_backlight(level);
+#endif  /*USE_MONITOR*/
     // SDL_SetTextureColorMod(monitor.texture, level, level, level);
     // window_update(&monitor);
     // monitor.sdl_refr_qry = true;
@@ -190,6 +195,16 @@ uint16_t PosixDevice::get_cpu_frequency()
 bool PosixDevice::is_system_pin(uint8_t pin)
 {
     return false;
+}
+
+void PosixDevice::loop(void)
+{
+    static auto then = std::chrono::steady_clock::now();
+    auto now = std::chrono::steady_clock::now();
+    if (now - then > std::chrono::milliseconds(5)) {
+        then = now;
+        lv_tick_inc(5);
+    }
 }
 
 #ifndef TARGET_OS_MAC

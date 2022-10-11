@@ -246,7 +246,7 @@ void Page::load_jsonl(const char* pagesfile)
     path[0] = '.';
     path[1] = '\0';
     strcat(path, pagesfile);
-    path[1] = '\\';
+    path[1] = '/';
 
     LOG_TRACE(TAG_HASP, F("Loading %s from disk..."), path);
     std::ifstream f(path); // taking file as inputstream

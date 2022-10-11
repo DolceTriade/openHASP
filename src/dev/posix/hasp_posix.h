@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <chrono>
 
 extern "C" {
 #include <inttypes.h>
@@ -55,6 +56,7 @@ class PosixDevice : public BaseDevice {
     long get_uptime();
 
     bool is_system_pin(uint8_t pin) override;
+    void loop() override;
 
   private:
     std::string _hostname;

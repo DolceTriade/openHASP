@@ -17,6 +17,7 @@
 #include "hasp_gui.h" // for screenshot
 
 #if defined(WINDOWS) || defined(POSIX)
+#include <unistd.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -743,7 +744,7 @@ void dispatch_exec(const char*, const char* payload, uint8_t source)
     path[0] = '.';
     path[1] = '\0';
     strcat(path, filename);
-    path[1] = '\\';
+    path[1] = '/';
 
     LOG_TRACE(TAG_HASP, F("Loading %s from disk..."), path);
     std::ifstream f(path); // taking file as inputstream
